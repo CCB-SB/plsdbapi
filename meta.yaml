@@ -1,0 +1,35 @@
+{% set name = "plsdbapi" %}
+{% set version = "0.1.0" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  git_rev: master
+  git_url: https://github.com/annahrt/plsdbapi
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv "
+
+requirements:
+  host:
+    - pip
+    - python
+  run:
+    - python >=3.9
+    - requests >=2.25
+    - pandas >=1.2.5
+    - tqdm >=4.62.1
+
+test:
+  imports:
+    - plsdbapi
+
+about:
+  home: https://ccb-microbe.cs.uni-saarland.de/plsdb-update
+  license: MIT
+  license_family: MIT
+  summary: API for plasmid database PLSDB
+  dev_url: https://github.com/annahrt/plsdbapi 

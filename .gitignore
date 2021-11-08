@@ -1,0 +1,14 @@
+## python 
+plsdbapi/.idea
+plsdbapi/__pycache__/
+
+.idea/
+
+# downloaded fasta files
+fasta__*
+
+# log files
+plsdbapi.log
+
+# private test file
+test.py
