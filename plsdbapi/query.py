@@ -7,7 +7,7 @@ from tqdm import tqdm
 ###########################
 ### variables
 ###########################
-URL = 'https://www.ccb.uni-saarland.de/plsdb/plasmids/api/'
+URL = 'https://ccb-microbe.cs.uni-saarland.de/plsdb/plasmids/api/'
 
 ###########################
 ### logger
