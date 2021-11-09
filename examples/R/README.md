@@ -25,10 +25,10 @@ df = plsdbapi$query$query_plasmid_id(ids, fasta=FALSE)
 ## **Query sequences (with mash_screen)**
 Use `query_plasmid_sequence` to run `mash_screen`, `mash_dist`, `blastn` or `tbastn` with the input fasta against **PLSDB**. A pandas dataframe with the results is returned. 
 
-Here we run `mash_screen` with the [example fasta from PLSDB](https://ccb-microbe.cs.uni-saarland.de/plsdb-update/plasmids/search_form/seq/?example_mix) with a maximum p-value of 0 and a minimum identity of 0.999.
+Here we run `mash_screen` with the [example fasta from PLSDB](https://ccb-microbe.cs.uni-saarland.de/plsdb/plasmids/search_form/seq/?example_mix) with a maximum p-value of 0 and a minimum identity of 0.999.
 Either a fasta file or a sequence string are accepted for querying.
 ```R
-ifile = 'example_seq_mix.fasta' # downloaded from https://ccb-microbe.cs.uni-saarland.de/plsdb-update/plasmids/search_form/seq/
+ifile = 'example_seq_mix.fasta' # downloaded from https://ccb-microbe.cs.uni-saarland.de/plsdb/plasmids/search_form/seq/
 df = plsdbapi$query$query_plasmid_sequence('mash_screen', ifile=ifile, mash_max_v=0, mash_min_i=0.999)
 ```
 | identity | shared_hashes | median_multiplicity | pvalue  |  ACC_NUCCORE | UID_NUCCORE | ... |

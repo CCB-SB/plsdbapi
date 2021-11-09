@@ -7,7 +7,7 @@ package:
 
 source:
   git_rev: master
-  git_url: https://github.com/annahrt/plsdbapi
+  git_url: https://github.com/CCB-SB/plsdbapi
 
 build:
   number: 0
@@ -28,8 +28,8 @@ test:
     - plsdbapi
 
 about:
-  home: https://ccb-microbe.cs.uni-saarland.de/plsdb-update
+  home: https://ccb-microbe.cs.uni-saarland.de/plsdb
   license: MIT
   license_family: MIT
   summary: API for plasmid database PLSDB
-  dev_url: https://github.com/annahrt/plsdbapi 
+  dev_url: https://github.com/CCB-SB/plsdbapi 
