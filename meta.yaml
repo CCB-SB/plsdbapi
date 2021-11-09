@@ -28,7 +28,7 @@ test:
     - plsdbapi
 
 about:
-  home: https://ccb-microbe.cs.uni-saarland.de/plsdb
+  home: https://www.ccb.uni-saarland.de/plsdb
   license: MIT
   license_family: MIT
   summary: API for plasmid database PLSDB

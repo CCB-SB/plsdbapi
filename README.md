@@ -1,7 +1,7 @@
 
 # API for the plasmid database PLSDB
 PLSDB is a resource of plasmid records that are collected from the NCBI database and subsequently processed to remove incomplete, inconsistent or chromosomal entries, and to add annotations. This package allows to connect to the PLSDB webserver and download plasmid data. Hence, a stable internet connection is required.
-To find out more about PLSDB please visit our [web server](https://ccb-microbe.cs.uni-saarland.de/plsdb). 
+To find out more about PLSDB please visit our [web server](https://www.ccb.uni-saarland.de/plsdb). 
 
 All PLSDB tools are provided and hosted by the [Chair for Clinical Bioinformatics at Saarland University](https://www.ccb.uni-saarland.de/).
 
