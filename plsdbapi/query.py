@@ -384,15 +384,6 @@ def filter_taxonomy(fasta=False, TAXONOMY_strain="", TAXONOMY_strain_id="", TAXO
         raise Exception('Http response is not OK. Response status code is %s.' % response.status_code)
 
 
-    
-if __name__ == "__main__":
-
-    import query
-    # query.summary(['NZ_CP031107.1'], fasta=True)
-    query.filter_nuccore(NUCCORE_Source="RefSeq", NUCCORE_Topology="circular", NUCCORE_has_identical='yes', AMR_genes="espP,toxB,ehxA,katP")
-    query.filter_biosample(ECOSYSTEM_tags="fecal", ECOSYSTEM_taxid=9606, DISEASE_ontid_name='Aspiration pneumonia')
-    query.filter_taxonomy(TAXONOMY_strain_id=340184)
-
 
 
 
