@@ -7,10 +7,10 @@ All PLSDB tools are provided and hosted by the [Chair for Clinical Bioinformatic
 
 
 ### Data accessible with plsdbapi
-- general data about one or more plasmids using the NCBI accession id:  `query_plasmid_id`
+- general data about one or more plasmids using the NCBI accession id:  `summary`
 - search nucleotide sequences in PLSDB with *mash screen*, *mash dist*, *blastn* and *tblastn*:  `query_plasmid_sequence`
-- filter PLSDB according to e.g. name, location or length and download the found plasmids: `query_plasmid_filter`
-- fasta sequences can be downloaded with `query_plasmid_id` and `query_plasmid_filter` as well as with `download_fasta`
+- filter PLSDB according to e.g. name, location or length and download the found plasmids: `filter_nuccore`, `filter_biosample`, `filter_taxonomy`
+- fasta sequences can be downloaded with `summary` and `filter_X` as well as with `download_fasta`
 
 To see some examples on how to use **plsdbapi** in python and R read the [quickstart guides](https://github.com/CCB-SB/plsdbapi/tree/master/examples). 
 

@@ -13,12 +13,8 @@ Use `query_plasmid_id` to search **PLSDB** for the NCBI sequence accession IDs g
 When a unique accession was found the plasmid is annotated with the `label` **found**, otherwise with **notfound**. In the latter case a list with all possible matches can be found in the dataframe; sequences will not be downloaded.
 ```R
 ids = c('NZ_CP053191.1', 'NZ_CP05319')
-df = plsdbapi$query$query_plasmid_id(ids, fasta=FALSE)
+df = plsdbapi$query$summary(ids, fasta=FALSE)
 ```
-| label | searched  | UID_NUCCORE   | ACC_NUCCORE   | ...   |   pmlst   | count | matches   |
-|-------|-----------|---------------|---------------|-------|-----------|-------|-----------|
-| found | NZ_CP053191.1 | 1841300391 | NZ_CP053191.1 | ...  |IncHI2 DLST(1): smr0018(1);smr0199(1)| NaN | Nan |
-| notfound | NZ_CP05319 | NaN | NaN | ... | NaN | 4 | NZ_CP053194.1, NZ_CP053193.1, NZ_CP053192.1, NZ_CP053192.1 |
     
 &nbsp;
 
@@ -60,13 +56,7 @@ isdownloaded = plsdbapi$query$download_fasta(c('NC_011102.1', 'NC_01110'), opath
 Run `query_plasmid_filter` to filter the records in **PLSDB**. Keeping the default parameters stores the whole plasmid table. The default strategy for strings is *contains* .Alternatively *is*, *begins* or *ends* can be used.
 In this example all plasmids containing *NZ_CP0110* and a location beginning with *China* are filtered and returned in a pandas dataframe. Additionally, the fastas of these plasmids can be downloaded (`fasta=TRUE`).
 ```R
-df = plsdbapi$query$query_plasmid_filter(fasta=TRUE, plasmid='NZ_CP0110', location='China', location_strategy='begins')
+plsdbapi$query$filter_nuccore(NUCCORE_Source="RefSeq", NUCCORE_Topology="circular", NUCCORE_has_identical='yes', AMR_genes="espP,toxB,ehxA,katP")
+plsdbapi$query$filter_biosample(ECOSYSTEM_tags="fecal", ECOSYSTEM_taxid=9606, DISEASE_ontid_name='Aspiration pneumonia')
+plsdbapi$query$filter_taxonomy(TAXONOMY_strain_id=340184)
 ```
-| UID_NUCCORE  |  ACC_NUCCORE     |     Description_NUCCORE |  ...  |  pmlst   |
-|--------------|------------------|-------------------------|-------|----------|---------|
-| 1016070225 | NZ_CP011067.1 | Escherichia coli str. Sanji plasmid pSJ_2, ... | ... |                                              None |
-| 1016070224 | NZ_CP011066.1 | Escherichia coli str. Sanji plasmid pSJ_3, ... | ... |                                              None |
-| 1016070223 | NZ_CP011065.1 | Escherichia coli str. Sanji plasmid pSJ_82, ... | ... | IncF RST(F2:A-:B-): FIA(-); FIB(-); FIC(-); FII(2)... |
-| 1016070222 | NZ_CP011064.1 | Escherichia coli str. Sanji plasmid pSJ_94, ... | ... | IncF RST(F36:A-:B-): FIA(4,20); FIB(-); FIC(-); FI... |
-| 1016070221 | NZ_CP011063.1 | Escherichia coli str. Sanji plasmid pSJ_98, ... | ... |                                              None |
-| 1016070220 | NZ_CP011062.1 | Escherichia coli str. Sanji plasmid pSJ_255, ... | ... | IncHI2 DLST(3): smr0018(3); smr0199(2) IncN MLST... |
