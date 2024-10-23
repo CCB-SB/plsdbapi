@@ -7,7 +7,7 @@ from tqdm import tqdm
 ###########################
 ### variables
 ###########################
-URL = 'https://ccb-microbe.cs.uni-saarland.de/plsdb/plasmids/api/'
+URL = 'https://ccb-microbe.cs.uni-saarland.de/plsdb2025/api/'
 
 ###########################
 ### logger
@@ -113,7 +113,7 @@ def download_fasta(ids):
     return False     
     
         
-def query_plasmid_id(ids, fasta=False):
+def summary(ids, fasta=False):
     """
     This function processes the plasmid IDs and returns their information stored in PLSDB as .tsv and (optional) .fasta file.
     :param ids: List of plasmid NCBI sequence accession ids
@@ -128,28 +128,28 @@ def query_plasmid_id(ids, fasta=False):
     found = []
     notfound = []
     fastas = []
+    results = []
 
     # search ids in PLSDB
     logger.info('start searching for plasmids')
     for id in ids:
-        PARAMS = {'plasmid_id': id}
-        response = requests.get(url=URL+'plasmid/', params=PARAMS)
+        PARAMS = {'NUCCORE_ACC': id}
+        response = requests.get(url=URL+'summary/', params=PARAMS)
         if response.status_code == 200:
             d = response.json()
-            if 'found' in d:
-                # exactly one matching accession was found for id
-                d['found']['searched'] = id
-                d['found']['label'] = 'found'
-                found.append(d['found'])
-                # if fasta=True its sequence will be downloaded
-                if fasta:
-                    fastas.append(d['found']['searched'])
-            elif 'searched' in d:
+            if 'searched' in d:
                 # more than one accessions found -  no unique accession for id
                 d['label'] = 'notfound'
                 notfound.append(d)
-            else:
-                raise Exception("Unexpected response for plasmid %s: %s" % (id, d))
+            elif 'Metadata_annotations' in d:
+                # exactly one matching accession was found for id
+                d['searched'] = id
+                d['label'] = 'found'
+                found.append(d)
+                # if fasta=True its sequence will be downloaded
+                if fasta:
+                    fastas.append(d['searched'])
+            results.append(d)
             
         else:
             raise Exception('Http response is not OK. Response status code is %s.' % response.status_code)
@@ -157,24 +157,13 @@ def query_plasmid_id(ids, fasta=False):
     logger.info('search is finished')
     logger.info('%s of %s ids were found' % (str(len(found)), str(len(ids))))
 
-    # convert arrays to pd dataframe and merge results
-    df1 = pandas.DataFrame(data=found)
-    df2 = pandas.DataFrame(data=notfound)
-    df = df1.append(df2, ignore_index=True, sort=False)
-
     # download fastas for found accessions and merge dataframes
     if fasta:
         seqs = download_fasta(fastas)
         if not seqs:
             logger.info('fasta download failed')
 
-    # re-order columns 
-    cols = list(df)
-    cols.insert(0, cols.pop(cols.index('searched')))
-    cols.insert(0, cols.pop(cols.index('label')))   
-    df = df.loc[:, cols]
-
-    return df
+    return results
 
 
 def query_plasmid_sequence(search_type, ifile='', iseq='', seqname='sequence',
@@ -257,76 +246,16 @@ def query_plasmid_sequence(search_type, ifile='', iseq='', seqname='sequence',
         raise Exception('Http response is not OK. Response status code is %s.' % response.status_code)
 
 
-def query_plasmid_filter(fasta=False, plasmid='all', plasmid_strategy='contains',
-                         topology='all', topology_strategy='is',
-                         earliest_date='1982/01/01', latest_date=None,
-                         location='all', location_strategy='contains',
-                         location_mapped='all', location_mapped_strategy='contains',
-                         min_latitude=-90, max_latitude=90,
-                         min_longitude=-180, max_longitude=180,
-                         isolation_source='all', isolation_source_strategy='contains',
-                         host='all', host_strategy='contains',
-                         sample_type='all', sample_type_strategy='contains',
-                         plasmidfinder='all', plasmidfinder_strategy='contains',
-                         pmlst='all', pmlst_strategy='contains',
-                         min_length=0, max_length=10000000,
-                         min_gc=0, max_gc=100,
-                         taxon='all', taxon_strategy='contains',
-                         species='all', species_strategy='contains',
-                         genus='all', genus_strategy='contains',
-                         family='all', family_strategy='contains',
-                         order='all', order_strategy='contains',
-                         bclass='all', bclass_strategy='contains',
-                         phylum='all', phylum_strategy='contains',
-                         kingdom='all', kingdom_strategy='contains'
-                         ):
+def filter_nuccore(fasta=False, NUCCORE_Source="", NUCCORE_Topology="", NUCCORE_has_identical="",
+                   AMR_genes="", BGC_types=""):
     """
     Filter the PLSDB plasmids
     :param fasta: if True generates fasta file of filtered plasmids
-    :param plasmid: NCBI sequence accession
-    :param plasmid_strategy: 'contains', 'begins', 'ends', 'is' for plasmid
-    :param topology: 'circular', 'linear' or 'not-set'
-    :param topology_strategy: 'is'
-    :param earliest_date: format YYYY/MM/DD
-    :param latest_date: format YYYY/MM/DD
-    :param location: Country (:city)
-    :param location_strategy: 'contains', 'begins', 'ends', 'is' for location
-    :param location_mapped: Country (,city)
-    :param location_mapped_strategy: 'contains', 'begins', 'ends', 'is' for location_mapped
-    :param min_latitude: values between -90 and 90
-    :param max_latitude: values between -90 and 90
-    :param min_longitude: values between -180 and 180
-    :param max_longitude: values between -180 and 180
-    :param isolation_source:
-    :param isolation_source_strategy: 'contains', 'begins', 'ends', 'is' for isolation_source
-    :param host:
-    :param host_strategy: 'contains', 'begins', 'ends', 'is' for host
-    :param sample_type:
-    :param sample_type_strategy: 'contains', 'begins', 'ends', 'is' for sample_type
-    :param plasmidfinder:
-    :param plasmidfinder_strategy: 'contains', 'begins', 'ends', 'is' for plasmidfinder
-    :param pmlst:
-    :param pmlst_strategy: 'contains', 'begins', 'ends', 'is' for plasmidfinder
-    :param min_length:
-    :param max_length:
-    :param min_gc: values between 0 and 100
-    :param max_gc: values between 0 and 100
-    :param taxon:
-    :param taxon_strategy: 'contains', 'begins', 'ends', 'is' for for taxon
-    :param species:
-    :param species_strategy: 'contains', 'begins', 'ends', 'is' for species
-    :param genus:
-    :param genus_strategy: 'contains', 'begins', 'ends', 'is' for genus
-    :param family:
-    :param family_strategy: 'contains', 'begins', 'ends', 'is' for family
-    :param order:
-    :param order_strategy: 'contains', 'begins', 'ends', 'is' for order
-    :param bclass:
-    :param bclass_strategy: 'contains', 'begins', 'ends', 'is' for class
-    :param phylum:
-    :param phylum_strategy: 'contains', 'begins', 'ends', 'is' for phylum
-    :param kingdom:
-    :param kingdom_strategy: 'contains', 'begins', 'ends', 'is' for kingdom
+    :param NUCCORE_Source: Search for plasmid with selected source. Available values : RefSeq, INSDC
+    :param NUCCORE_Source: Report all plasmids with selected 'topology'. Available values : circular, linear
+    :param NUCCORE_has_identical: Report all plasmids with detected Identical sequences. Available values : yes, empty
+    :param AMR_genes: Search for plasmid that contains the select AMR gene. Str with comma separated values
+    :param BGC_types: Search for plasmid that contains the select BGC type. Str with comma separated values
     :return:
     """
 
@@ -334,36 +263,135 @@ def query_plasmid_filter(fasta=False, plasmid='all', plasmid_strategy='contains'
     PARAMS = dict()
     for var in local:
         if var == 'fasta': continue
+        if not local[var]: continue
         PARAMS[var] = local[var]
     
+    print(PARAMS)
     logger.info('START search for plasmids')
-    response = requests.get(url=URL + 'filter/', params=PARAMS)
+    response = requests.get(url=URL + 'filter_nuccore', params=PARAMS)
 
     if response.status_code == 200:
         data = response.json()
-        df = pandas.read_json(data, orient='split')
 
         if len(data) == 0:
             logger.info('No plasmid found for filter %s.' % PARAMS)
             return
 
         if fasta:
-            fastas = df['ACC_NUCCORE']
+            fastas = data['NUCCORE_ACC']
             seqs = download_fasta(fastas)
             if not seqs:
                 logger.info("fasta download failed")
 
         logger.info("DONE")       
-        return df
+        return data
+    else:
+        raise Exception('Http response is not OK. Response status code is %s.' % response.status_code)
+
+def filter_biosample(fasta=False, BIOSAMPLE_UID="", LOCATION_name="", ECOSYSTEM_tags="",
+                   ECOSYSTEM_taxid_name="", ECOSYSTEM_taxid="", DISEASE_ontid_name="",
+                   DISEASE_ontid=""):
+    """
+    Filter the PLSDB plasmids
+    :param fasta: if True generates fasta file of filtered plasmids
+    :param BIOSAMPLE_UID: Report all plasmids found with the selected BIOSAMPLE_ACC
+    :param LOCATION_name: Report all plasmids found at the given location, e.g. Germany
+    :param ECOSYSTEM_tags: Report all plasmids with entered isolation_source, e.g. fecal.
+    :param ECOSYSTEM_taxid_name: Report all plasmids from host-associated ecosystems using NCBI Taxonomy taxids, e.g Homo sapiens = 9606
+    :param DISEASE_ontid_name: Report all plasmids from host-associated ecosystems with associated diseases, e.g Aspiration pneumonia
+    :param DISEASE_ontid: Report all plasmids from host-associated ecosystems with associated diseases by Disease/Symptom ID, e.g Aspiration pneumonia = 'DOID:0050152'
+    :return:
+    """
+
+    local = locals()
+    PARAMS = dict()
+    for var in local:
+        if var == 'fasta': continue
+        if not local[var]: continue
+        PARAMS[var] = local[var]
+    
+    print(PARAMS)
+    logger.info('START search for plasmids')
+    response = requests.get(url=URL + 'filter_biosample', params=PARAMS)
+
+    if response.status_code == 200:
+        data = response.json()
+
+        if len(data) == 0:
+            logger.info('No plasmid found for filter %s.' % PARAMS)
+            return
+
+        if fasta:
+            fastas = data['NUCCORE_ACC']
+            seqs = download_fasta(fastas)
+            if not seqs:
+                logger.info("fasta download failed")
+
+        logger.info("DONE")       
+        return data
+    else:
+        raise Exception('Http response is not OK. Response status code is %s.' % response.status_code)
+
+def filter_taxonomy(fasta=False, TAXONOMY_strain="", TAXONOMY_strain_id="", TAXONOMY_species="",
+                   TAXONOMY_species_id="", TAXONOMY_genus="", TAXONOMY_genus_id="",
+                   TAXONOMY_family="", TAXONOMY_family_id="", TAXONOMY_order="",
+                   TAXONOMY_order_id="", TAXONOMY_class="", TAXONOMY_class_id="",
+                   TAXONOMY_phylum="", TAXONOMY_phylum_id="", TAXONOMY_superkingdom="",
+                   TAXONOMY_superkingdom_id=""
+                     ):
+    """
+    Filter the PLSDB plasmids
+    :param fasta: if True generates fasta file of filtered plasmids
+    :param TAXONOMY_strain: Report all plasmids according to given host strain (NCBI Taxonomy name), e.g. Escherichia coli B7A
+    :param TAXONOMY_strain_id: Report all plasmids according to given host strain ID (NCBI Taxonomy taxid), e.g. Escherichia coli B7A = 340184
+    :param TAXONOMY_species: Report all plasmids according to given host species (NCBI Taxonomy name), e.g. Escherichia coli.
+    :param TAXONOMY_species_id: Report all plasmids according to given host species ID (NCBI Taxonomy taxid), e.g. Escherichia coli = 562.
+    :param TAXONOMY_genus_id: Report all plasmids according to given host genus ID (NCBI Taxonomy taxid), e.g. Escherichia = 561.
+    :param TAXONOMY_family: Report all plasmids according to given host family (NCBI Taxonomy name), e.g. Enterobacteriaceae.
+    :param TAXONOMY_family_id: Report all plasmids according to given host family ID (NCBI Taxonomy taxid), e.g. Enterobacteriaceae = 543.
+    :param TAXONOMY_order: Report all plasmids according to given host order (NCBI Taxonomy name), e.g. Enterobacterales.
+    :param TAXONOMY_order_id: Report all plasmids according to given host order ID (NCBI Taxonomy taxid), e.g. Enterobacterales = 91347.
+    :param TAXONOMY_class: Report all plasmids according to given host class (NCBI Taxonomy name), e.g. Gammaproteobacteria.
+    :param TAXONOMY_class_id: Report all plasmids according to given host class ID (NCBI Taxonomy taxid), e.g. Gammaproteobacteria = 1236.
+    :param TAXONOMY_phylum: Report all plasmids according to given host phylum (NCBI Taxonomy name), e.g. Pseudomonadota.
+    :param TAXONOMY_phylum_id: Report all plasmids according to given host phylum ID (NCBI Taxonomy taxid), e.g. Pseudomonadota = 1224.
+    :param TAXONOMY_superkingdom: Report all plasmids according to given host superkigdom (NCBI Taxonomy name), e.g. Bacteria.
+    :param TAXONOMY_superkingdom_id: Report all plasmids according to given host superkingdom ID (NCBI Taxonomy taxid), e.g. Bacteria = 2.
+    :return:
+    """
+
+    local = locals()
+    PARAMS = dict()
+    for var in local:
+        if var == 'fasta': continue
+        if not local[var]: continue
+        PARAMS[var] = local[var]
+    
+    print(PARAMS)
+    logger.info('START search for plasmids')
+    response = requests.get(url=URL + 'filter_taxonomy', params=PARAMS)
+
+    if response.status_code == 200:
+        data = response.json()
+
+        if len(data) == 0:
+            logger.info('No plasmid found for filter %s.' % PARAMS)
+            return
+
+        logger.info("DONE")       
+        return data
     else:
         raise Exception('Http response is not OK. Response status code is %s.' % response.status_code)
 
 
-
     
+if __name__ == "__main__":
 
-
-
+    import query
+    # query.summary(['NZ_CP031107.1'], fasta=True)
+    query.filter_nuccore(NUCCORE_Source="RefSeq", NUCCORE_Topology="circular", NUCCORE_has_identical='yes', AMR_genes="espP,toxB,ehxA,katP")
+    query.filter_biosample(ECOSYSTEM_tags="fecal", ECOSYSTEM_taxid=9606, DISEASE_ontid_name='Aspiration pneumonia')
+    query.filter_taxonomy(TAXONOMY_strain_id=340184)
 
 
 
